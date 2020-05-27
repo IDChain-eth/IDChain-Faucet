@@ -1,5 +1,5 @@
 const deepLinkPrefix = 'brightid://link-verification/http:%2f%2ftest.brightid.org/idchain/';
-const claimURL = '/begin/api/claim';
+const claimURL = './api/claim';
 
 $(function () {
   $('#connect-button').on('click', async () => {
@@ -12,6 +12,11 @@ $(function () {
       width: 220,
       height: 220,
     });
-    $.post(claimURL, {'addr': account});
+    $.post({
+      url: claimURL,
+      data: JSON.stringify({addr: account}),
+      dataType: 'json',
+      contentType: 'application/json; charset=utf-8'
+    });
   })
 });
