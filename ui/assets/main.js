@@ -7,6 +7,7 @@ $(function () {
     const accounts = await ethereum.enable();
     const account = accounts[0];
     $('#connect-button').hide();
+    $('#qrcode').html('');
     new QRCode(document.getElementById("qrcode"), {
       text: deepLinkPrefix+account,
       width: 220,
@@ -18,5 +19,9 @@ $(function () {
       dataType: 'json',
       contentType: 'application/json; charset=utf-8'
     });
-  })
+    setTimeout(function(){
+      $('#connect-button').show();
+      $('#qrcode').hide();
+    }, 120000);
+  });
 });
