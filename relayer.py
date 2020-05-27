@@ -3,10 +3,12 @@ import time
 import json
 import base64
 import hashlib
+import threading
 import requests
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 import ed25519
+from flask import Flask, request, jsonify
 
 SKIP_LINKS = 0
 BRIGHTID_NODE = 'http://test.brightid.org/brightid/v4'
@@ -29,6 +31,8 @@ RELAYER_ADDRESS = '0x0df7eDDd60D613362ca2b44659F56fEbafFA9bFB'
 RELAYER_PRIVATE = ''
 WAITING_TIME = 15
 PROCESSED_FILE = 'processed.txt'
+CHECK_NUM = 20
+CHECK_PERIOD = 10
 
 w3 = Web3(Web3.WebsocketProvider(RPC_URL))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -38,6 +42,7 @@ nonce = w3.eth.getTransactionCount(RELAYER_ADDRESS)
 
 def verify(addr):
     global nonce
+    addr = Web3.toChecksumAddress(addr)
     block = brightid.functions.verifications(addr).call()
     if block > 0:
         print('{} is verified'.format(addr))
@@ -91,7 +96,6 @@ def sponsor(addr):
     m.update(message)
     _key = base64.b64encode(m.digest()).decode('ascii')
     _key = _key.replace('+', '-').replace('/', '_').replace('=', '')
-    print(_key)
     r = requests.put(OPERATION_URL + _key, json.dumps({
         '_key': _key,
         'name': 'Sponsor',
@@ -116,6 +120,7 @@ def claim(addrs):
     addrs = list(map(Web3.toChecksumAddress, addrs))
     for addr in addrs:
         claimed += distribution.functions.claimed(addr).call()
+
     claimable = distribution.functions.claimable().call()
     if claimable - claimed <= 0:
         print('{} claimed {} tokens before'.format(addrs, claimed/10**18))
@@ -135,10 +140,16 @@ def claim(addrs):
     print('{} claimed {} tokens'.format(addrs, (claimable - claimed)/10**18))
 
 def process(addr):
+    addr = addr.lower()
     print('processing {}'.format(addr))
-    data = requests.get(VERIFICATIONS_URL + addr).json()
-    if 'errorMessage' in data and data['errorMessage'] == NOT_FOUND:
+    for i in range(CHECK_NUM):
+        data = requests.get(VERIFICATIONS_URL + addr).json()
+        if 'errorMessage' not in data or data['errorMessage'] != NOT_FOUND:
+            break
         print('{} not found'.format(addr))
+        time.sleep(CHECK_PERIOD)
+    else:
+        print('{} monitoring expired'.format(addr))
         return
     sponsor(addr)
     data = requests.get(VERIFICATIONS_URL + addr).json()
@@ -148,23 +159,14 @@ def process(addr):
     verify(addr)
     claim(data['data']['contextIds'])
 
-def main():
-    if os.path.exists(PROCESSED_FILE):
-        with open(PROCESSED_FILE) as f:
-            processed = [addr.strip() for addr in f.read().split('\n') if addr.strip()]
-    else:
-        processed = []
-
-    while True:
-        data = requests.get(VERIFICATIONS_URL).json()['data']
-        addrs = map(Web3.toChecksumAddress, data['contextIds'])
-        addrs = [addr for addr in addrs if addr not in processed]
-        for addr in addrs:
-            process(addr)
-            processed.append(addr)
-            with open(PROCESSED_FILE, 'a') as f:
-                f.write(addr + '\n')
-        time.sleep(5)
+app = Flask(__name__)
+@app.route('/claim', methods=['POST'])
+def claim_endpoint():
+    addr = request.json.get('addr', None)
+    if not addr:
+        return jsonify({'success': False})
+    threading.Thread(target=process, args=(addr,)).start()
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
-    main()
+    app.run(host='localhost', port=5000)
