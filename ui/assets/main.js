@@ -1,5 +1,5 @@
 const deepLinkPrefix = 'brightid://link-verification/http:%2f%2ftest.brightid.org/idchain/';
-const claimURL = '/relayer/claim';
+const claimURL = '/begin/claim';
 
 $(function () {
   $('#connect-button').on('click', async () => {
