@@ -8,6 +8,7 @@ $(function () {
     const account = accounts[0];
     $('#connect-button').hide();
     $('#qrcode').html('');
+    $('#qrcode').show();
     new QRCode(document.getElementById("qrcode"), {
       text: deepLinkPrefix+account,
       width: 220,
