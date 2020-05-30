@@ -1,4 +1,4 @@
-const deepLinkPrefix = 'brightid://link-verification/http:%2f%2ftest.brightid.org/idchain/';
+const deepLinkPrefix = 'brightid://link-verification/http:%2f%2fnode.brightid.org/idchain/';
 const claimURL = './api/claim';
 
 $(function () {
