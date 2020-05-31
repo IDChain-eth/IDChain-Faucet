@@ -17,6 +17,20 @@ brightid = w3.eth.contract(address=BRIGHTID_ADDRESS, abi=BRIGHTID_ABI)
 distribution = w3.eth.contract(address=DISTRIBUTION_ADDRESS, abi=DISTRIBUTION_ABI)
 nonce = w3.eth.getTransactionCount(RELAYER_ADDRESS)
 
+def transact(f):
+    global nonce
+    tx = f.buildTransaction({
+        'chainId': CHAINID,
+        'gas': GAS,
+        'gasPrice': GAS_PRICE,
+        'nonce': nonce,
+    })
+    nonce += 1
+    signed_txn = w3.eth.account.sign_transaction(tx, private_key=RELAYER_PRIVATE)
+    w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+    receipt = w3.eth.waitForTransactionReceipt(signed_txn['hash'])
+    assert receipt['status'], '{} failed'.format(tx)
+
 def verify(addr):
     global nonce
     addr = Web3.toChecksumAddress(addr)
@@ -28,36 +42,20 @@ def verify(addr):
     data = data['data']
     data['contextIds'] = list(map(Web3.toChecksumAddress, data['contextIds']))
     print('proposing {}'.format(addr))
-    tx = brightid.functions.propose(
+    transact(brightid.functions.propose(
         '0x' + CONTEXT.encode('ascii').hex(),
         data['contextIds'],
         data['sig']['v'],
         '0x' + data['sig']['r'],
         '0x' + data['sig']['s']
-    ).buildTransaction({
-        'chainId': CHAINID,
-        'gas': GAS,
-        'gasPrice': GAS_PRICE,
-        'nonce': nonce,
-    })
-    nonce += 1
-    signed_txn = w3.eth.account.sign_transaction(tx, private_key=RELAYER_PRIVATE)
-    w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+    ))
     print('waiting {}'.format(addr))
     time.sleep(WAITING_TIME_AFTER_PROPOSING)
     print('verifing {}'.format(addr))
-    tx = brightid.functions.verify(
+    transact(brightid.functions.verify(
         '0x' + CONTEXT.encode('ascii').hex(),
         data['contextIds']
-    ).buildTransaction({
-        'chainId': CHAINID,
-        'gas': GAS,
-        'gasPrice': GAS_PRICE,
-        'nonce': nonce,
-    })
-    signed_txn = w3.eth.account.sign_transaction(tx, private_key=RELAYER_PRIVATE)
-    w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-    nonce += 1
+    ))
     print('{} verified'.format(addr))
 
 def sponsor(addr):
@@ -102,18 +100,10 @@ def claim(addrs):
     if claimable - claimed <= 0:
         print('{} claimed {} tokens before'.format(addrs, claimed/10**18))
         return
-    tx = distribution.functions.claim(
+    transact(distribution.functions.claim(
         addrs[0],
         claimable - claimed
-    ).buildTransaction({
-        'chainId': CHAINID,
-        'gas': GAS,
-        'gasPrice': GAS_PRICE,
-        'nonce': nonce,
-    })
-    signed_txn = w3.eth.account.sign_transaction(tx, private_key=RELAYER_PRIVATE)
-    w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-    nonce += 1
+    ))
     print('{} claimed {} tokens'.format(addrs, (claimable - claimed)/10**18))
 
 def process(addr):
