@@ -12,6 +12,24 @@
   margin: 10px;
 }
 
+.ethereum-address {
+  width: 100%;
+  margin-bottom: 20px;
+  padding-left: 10px;
+}
+
+input:invalid {
+  background-color: pink;
+}
+
+::-webkit-input-placeholder {
+  text-align: center;
+}
+
+:-moz-placeholder {
+  text-align: center;
+}
+
 html {
   font-family: sans-serif;
   -webkit-text-size-adjust: 100%;
