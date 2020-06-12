@@ -107,7 +107,6 @@ def claim(addrs):
     print('{} claimed {} tokens'.format(addrs, (claimable - claimed)/10**18))
 
 def process(addr):
-    addr = addr.lower()
     print('processing {}'.format(addr))
     # waiting for link
     for i in range(LINK_CHECK_NUM):
@@ -129,13 +128,25 @@ def process(addr):
     verify(addr)
     claim(data['data']['contextIds'])
 
+processing = {}
+def _process(addr):
+    if addr in processing:
+        return
+    processing[addr] = True
+    try:
+        process(addr)
+    except:
+        raise
+    finally:
+        del processing[addr]
+
 app = Flask(__name__)
 @app.route('/claim', methods=['POST'])
 def claim_endpoint():
-    addr = request.json.get('addr', None)
+    addr = request.json and request.json.get('addr', '').lower()
     if not addr:
         return jsonify({'success': False})
-    threading.Thread(target=process, args=(addr,)).start()
+    threading.Thread(target=_process, args=(addr,)).start()
     return jsonify({'success': True})
 
 if __name__ == '__main__':
