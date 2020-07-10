@@ -7,6 +7,23 @@
   src: url("./NexaBold.otf") format("opentype");
 }
 
+.metamask {
+  font-size: 15px;
+  color: black;
+  zoom: 0.7;
+  width: 350px;
+  float: right;
+}
+
+.metamask label {
+  font-weight: bold;
+}
+
+.metamask input {
+  padding: 0 10px;
+  width: 100%;
+}
+
 .qrcodeblock {
   float: right;
   margin: 10px;
