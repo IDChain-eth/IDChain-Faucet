@@ -21,7 +21,12 @@ $(function () {
       url: claimURL,
       data: JSON.stringify({addr: account}),
       dataType: 'json',
-      contentType: 'application/json; charset=utf-8'
+      contentType: 'application/json; charset=utf-8',
+      success: function (data) {
+        if (data.error) {
+          alert(data.error);
+        }
+      },
     });
     setTimeout(function(){
       $('#qrcode').hide();

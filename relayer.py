@@ -146,6 +146,11 @@ def claim_endpoint():
     addr = request.json and request.json.get('addr', '').lower()
     if not addr:
         return jsonify({'success': False})
+    data = requests.get(VERIFICATIONS_URL + addr).json()
+    contextIds = data.get('data', {}).get('contextIds', [])
+    if contextIds and contextIds[0] != addr:
+        e = 'This address is used before. Link a new address or use {} as your last linked address!'.format(contextIds[0])
+        return jsonify({'success': False, 'error': e})
     threading.Thread(target=_process, args=(addr,)).start()
     return jsonify({'success': True})
 
