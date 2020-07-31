@@ -1,9 +1,14 @@
 const deepLinkPrefix = 'brightid://link-verification/http:%2f%2fnode.brightid.org/idchain/';
 const claimURL = './api/claim';
+let lastAddress;
 
 $(function () {
   $('#ethereum-address').on('change keyup', (e) => {
     const account = $('#ethereum-address').val();
+    if (account == lastAddress) {
+      return;
+    }
+    lastAddress = account;
     $('#deeplink').attr("href", "#");
     $('#qrcode').html('');
     if (!(/^(0x){1}[0-9a-fA-F]{40}$/i.test(account))) {
