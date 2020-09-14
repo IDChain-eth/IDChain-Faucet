@@ -38,8 +38,15 @@ $(function () {
     }, 120000);
   });
   $('#load-address-button').on('click', async () => {
-    //Will Start the metamask extension
-    const accounts = await ethereum.enable();
+    if (!window.ethereum) {
+      return alert('Metamask is not installed on this browser!');
+    }
+    try {
+      var accounts = await ethereum.enable();
+    } catch (e) {
+      return alert(e.message);
+    }
+
     const account = accounts[0];
     $('#ethereum-address').val(account).trigger('change');
   });
