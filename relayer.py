@@ -2,7 +2,6 @@ import os
 import time
 import json
 import base64
-import hashlib
 import threading
 import requests
 from web3 import Web3
@@ -63,23 +62,21 @@ def sponsor(addr):
     if 'errorMessage' not in data or data['errorMessage'] != NOT_SPONSORED:
         print('{} is sponsored'.format(addr))
         return
-    signing_key = ed25519.SigningKey(base64.b64decode(SPONSORSHIP_PRIVATEKEY))
-    message = bytes('Sponsor,idchain,' + addr, 'ascii');
-    sig = signing_key.sign(message)
-    sig = base64.b64encode(sig).decode('ascii')
-    m = hashlib.sha256()
-    m.update(message)
-    _key = base64.b64encode(m.digest()).decode('ascii')
-    _key = _key.replace('+', '-').replace('/', '_').replace('=', '')
-    r = requests.put(OPERATION_URL + _key, json.dumps({
-        '_key': _key,
+
+    op = {
         'name': 'Sponsor',
-        'context': 'idchain',
+        'app': 'idchain',
         'contextId': addr,
-        'sig': sig,
-        'v': 4
-    }))
-    assert r.text == '' and r.status_code == 204, 'error in sponsoring'
+        'timestamp': int(time.time()*1000),
+        'v': 5
+    }
+
+    signing_key = ed25519.SigningKey(base64.b64decode(SPONSORSHIP_PRIVATEKEY))
+    message = json.dumps(op, sort_keys=True, separators=(',', ':')).encode('ascii')
+    sig = signing_key.sign(message)
+    op['sig'] = base64.b64encode(sig).decode('ascii')
+    r = requests.post(OPERATION_URL, json.dumps(op))
+    assert r.status_code == 200, 'error in sponsoring'
     for i in range(SPONSOR_CHECK_NUM):
         print('waiting for sponsor operation get applied')
         time.sleep(SPONSOR_CHECK_PERIOD)

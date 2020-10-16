@@ -1,4 +1,4 @@
-BRIGHTID_NODE = 'http://node.brightid.org/brightid/v4'
+BRIGHTID_NODE = 'http://node.brightid.org/brightid/v5'
 VERIFICATIONS_URL = BRIGHTID_NODE + '/verifications/idchain/'
 OPERATION_URL = BRIGHTID_NODE + '/operations/'
 CONTEXT = 'idchain'
