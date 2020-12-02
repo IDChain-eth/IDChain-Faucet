@@ -13,7 +13,7 @@ BRIGHTID_ABI = '[{"anonymous": false, "inputs": [{"indexed": false, "internalTyp
 NOT_FOUND = 'contextId not found'
 NOT_SPONSORED = 'user is not sponsored'
 
-CHAINID = 74
+CHAINID = '0x4a'
 GAS = 500000
 GAS_PRICE = 10000000000
 
