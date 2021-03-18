@@ -50,4 +50,33 @@ $(function () {
     const account = accounts[0];
     $('#ethereum-address').val(account).trigger('change');
   });
+  $('#add-network-button').on('click', async () => {
+    if (!window.ethereum) {
+      return alert('Metamask is not installed on this browser!');
+    }
+    ethereum
+      .request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+        chainId: '0x4a',
+        chainName: 'IDChain',
+        nativeCurrency: {
+          name: 'Eidi',
+          symbol: 'Eidi',
+          decimals: 18,
+        },
+        rpcUrls: ['https://idchain.one/rpc/'],
+        blockExplorerUrls: ['https://explorer.idchain.one'],
+        iconUrls: ['https://apps.brightid.org/logos/idchain.png']
+      }]
+    })
+    .then((args) => console.log(args))
+    .catch((error) => {
+      if (error.code === 4001) {
+        alert('Please connect to MetaMask.');
+      } else {
+        console.error(error);
+      }
+    });
+  });
 });
