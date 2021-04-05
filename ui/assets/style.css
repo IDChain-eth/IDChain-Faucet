@@ -2177,3 +2177,7 @@ a.wp-block-button__link:hover {
 	height:40px !important;
 	margin-left:30px;
 }
+
+.dapps-header {
+  text-align:center;
+}
