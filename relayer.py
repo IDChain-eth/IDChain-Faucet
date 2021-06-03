@@ -59,7 +59,7 @@ def verify(addr):
 
 def sponsor(addr):
     data = requests.get(VERIFICATIONS_URL + addr).json()
-    if 'errorMessage' not in data or data['errorMessage'] != NOT_SPONSORED:
+    if 'errorNum' not in data or data['errorNum'] != NOT_SPONSORED:
         print('{} is sponsored'.format(addr))
         return
 
@@ -81,7 +81,7 @@ def sponsor(addr):
         print('waiting for sponsor operation get applied')
         time.sleep(SPONSOR_CHECK_PERIOD)
         data = requests.get(VERIFICATIONS_URL + addr).json()
-        if 'errorMessage' not in data or data['errorMessage'] != NOT_SPONSORED:
+        if 'errorNum' not in data or data['errorNum'] != NOT_SPONSORED:
             print('{} sponsored'.format(addr))
             return
     raise Exception('sponsoring failed')
@@ -108,7 +108,7 @@ def process(addr):
     # waiting for link
     for i in range(LINK_CHECK_NUM):
         data = requests.get(VERIFICATIONS_URL + addr).json()
-        if 'errorMessage' not in data or data['errorMessage'] != NOT_FOUND:
+        if 'errorNum' not in data or data['errorNum'] != NOT_FOUND:
             break
         print('{} not found'.format(addr))
         time.sleep(LINK_CHECK_PERIOD)
