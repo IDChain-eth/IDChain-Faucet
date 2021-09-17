@@ -14,24 +14,21 @@ w3 = Web3(Web3.WebsocketProvider(RPC_URL))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 brightid = w3.eth.contract(address=BRIGHTID_ADDRESS, abi=BRIGHTID_ABI)
 distribution = w3.eth.contract(address=DISTRIBUTION_ADDRESS, abi=DISTRIBUTION_ABI)
-nonce = w3.eth.getTransactionCount(RELAYER_ADDRESS)
 
 def transact(f):
-    global nonce
+    nonce = w3.eth.getTransactionCount(RELAYER_ADDRESS, 'pending')
     tx = f.buildTransaction({
         'chainId': CHAINID,
         'gas': GAS,
         'gasPrice': GAS_PRICE,
         'nonce': nonce,
     })
-    nonce += 1
     signed_txn = w3.eth.account.sign_transaction(tx, private_key=RELAYER_PRIVATE)
     w3.eth.sendRawTransaction(signed_txn.rawTransaction)
     receipt = w3.eth.waitForTransactionReceipt(signed_txn['hash'])
     assert receipt['status'], '{} failed'.format(tx)
 
 def verify(addr):
-    global nonce
     addr = Web3.toChecksumAddress(addr)
     block = brightid.functions.verifications(addr).call()
     if block > 0:
@@ -87,7 +84,6 @@ def sponsor(addr):
     raise Exception('sponsoring failed')
 
 def claim(addrs):
-    global nonce
     claimed = 0
     addrs = list(map(Web3.toChecksumAddress, addrs))
     for addr in addrs:
